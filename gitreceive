@@ -76,8 +76,13 @@ ensure_bare_repo() {
 ensure_prereceive_hook() {
   declare repo_path="$1" home_dir="$2" self="$3"
   local hook_path="$repo_path/hooks/pre-receive"
-  cat "$home_dir/receiver" > $hook_path
+  cd "$home_dir"
+  cat > "$hook_path" <<EOF
+#!/bin/bash
+cat | $self hook
+EOF
   chmod +x "$hook_path"
+  cd - > /dev/null
 }
 
 trigger_receiver() {
