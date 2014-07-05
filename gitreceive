@@ -105,26 +105,26 @@ main() {
   set -euo pipefail
 
   readonly SELF="$(absolute_path $0)"
-  
+
   case "$1" in
   # Public commands
-  
+
     init) # gitreceive init
       setup_git_user "$GITHOME" "$GITUSER"
       setup_receiver_script "$GITHOME" "$GITUSER"
       echo "Created receiver script in $GITHOME for user '$GITUSER'."
       ;;
-  
+
     upload-key) # sudo gitreceive upload-key <username>
       declare name="$2"
       local key="$(cat)"
       install_authorized_key "$key" "$name" "$GITHOME" "$GITUSER" "$SELF"
       echo "$key" | generate_fingerprint
       ;;
-  
+
   # Internal commands
-  
-    run) 
+
+    run)
       declare user="$2" fingerprint="$3"
       export RECEIVE_USER="$user"
       export RECEIVE_FINGERPRINT="$fingerprint"
@@ -135,11 +135,11 @@ main() {
       cd "$GITHOME"
       git-shell -c "$(echo "$SSH_ORIGINAL_COMMAND" | awk '{print $1}') '$RECEIVE_REPO'"
       ;;
-  
+
     hook)
       trigger_receiver "$RECEIVE_REPO" "$RECEIVE_USER" "$RECEIVE_FINGERPRINT" "$GITHOME" | strip_remote_prefix
       ;;
-  
+
     *)
       echo "Usage: gitreceive <command> [options]"
       ;;
