@@ -2,6 +2,7 @@
 
 readonly GITUSER="${GITUSER:-git}"
 readonly GITHOME="/home/$GITUSER"
+readonly GITZERO="0000000000000000000000000000000000000000"
 
 absolute_path() {
   pushd "$(dirname $1)" > /dev/null
@@ -88,9 +89,11 @@ EOF
 trigger_receiver() {
   declare repo="$1" user="$2" fingerprint="$3" home_dir="$4"
   while read oldrev newrev refname; do
-    # Only run this script for the master branch. You can remove this 
-    # if block if you wish to run it for others as well.
-    git archive "$newrev" | "$home_dir/receiver" "$repo" "$newrev" "$user" "$fingerprint"
+    if [[ "$newrev" == "$GITZERO" ]]; then
+      echo "Skipping delete operation"
+    else
+      git archive "$newrev" | "$home_dir/receiver" "$repo" "$newrev" "$user" "$fingerprint"
+    fi
   done
 }
 
