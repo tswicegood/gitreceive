@@ -22,7 +22,8 @@ setup_git_user() {
 setup_receiver_script() {
   declare home_dir="$1" git_user="$2"
   local receiver_path="$home_dir/receiver"
-  cat > "$receiver_path" <<EOF
+  if [ ! -f "$receiver_path" ]; then
+    cat > "$receiver_path" <<EOF
 #!/bin/bash
 #URL=http://requestb.in/rlh4znrl
 #echo "----> Posting to \$URL ..."
@@ -35,6 +36,9 @@ setup_receiver_script() {
 #  -F contents=@- \\
 #  --silent \$URL
 EOF
+  else
+    echo "skipping \"$receiver_path\" since it already exists"
+  fi
   chmod +x "$receiver_path"
   chown "$git_user" "$receiver_path"
 }
