@@ -86,6 +86,18 @@ EOF
   cd - > /dev/null
 }
 
+ensure_postreceive_hook() {
+  declare repo_path="$1" home_dir="$2" self="$3"
+  local hook_path="$repo_path/hooks/post-receive"
+  cd "$home_dir"
+  cat > "$hook_path" <<EOF
+#!/bin/bash
+cat | $self post
+EOF
+  chmod +x "$hook_path"
+  cd - > /dev/null
+}
+
 trigger_receiver() {
   declare repo="$1" user="$2" fingerprint="$3" home_dir="$4"
   while read oldrev newrev refname; do
@@ -95,6 +107,20 @@ trigger_receiver() {
       git archive "$newrev" | "$home_dir/receiver" "$repo" "$newrev" "$user" "$fingerprint"
     fi
   done
+}
+
+# TODO This shares most code with trigger_receiver, refactor!
+trigger_post_receive() {
+  declare repo="$1" user="$2" fingerprint="$3" home_dir="$4"
+  while read oldrev newrev refname; do
+    if [[ "$newrev" == "$GITZERO" ]]; then
+      echo "Skipping delete operation"
+    else
+      # Don't pass archive to this code, it can clone if it needs it
+      "$home_dir/post-receive" "$repo" "$newrev" "$user" "$fingerprint"
+    fi
+  done
+
 }
 
 strip_remote_prefix() {
@@ -132,12 +158,17 @@ main() {
       local repo_path="$GITHOME/$RECEIVE_REPO"
       ensure_bare_repo "$repo_path"
       ensure_prereceive_hook "$repo_path" "$GITHOME" "$SELF"
+      ensure_postreceive_hook "$repo_path" "$GITHOME" "$SELF"
       cd "$GITHOME"
       git-shell -c "$(echo "$SSH_ORIGINAL_COMMAND" | awk '{print $1}') '$RECEIVE_REPO'"
       ;;
 
     hook)
       trigger_receiver "$RECEIVE_REPO" "$RECEIVE_USER" "$RECEIVE_FINGERPRINT" "$GITHOME" | strip_remote_prefix
+      ;;
+
+    post)
+      trigger_post_receive "$RECEIVE_REPO" "$RECEIVE_USER" "$RECEIVE_FINGERPRINT" "$GITHOME" 2>&1 | strip_remote_prefix
       ;;
 
     *)
