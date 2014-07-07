@@ -124,7 +124,7 @@ trigger_post_receive() {
     fi
   done
 
-  if [[ $count -eq 0 ]]; then
+  if [[ $count -eq 1 ]]; then
     # Don't pass archive to this code, it can clone if it needs it
     "$home_dir/post-receive" "$repo" "$newrev" "$user" "$fingerprint"
   else
