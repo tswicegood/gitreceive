@@ -116,15 +116,18 @@ trigger_receiver() {
 # TODO This shares most code with trigger_receiver, refactor!
 trigger_post_receive() {
   declare repo="$1" user="$2" fingerprint="$3" home_dir="$4"
-  local count=0
+  local count=0 last_refname
   while read oldrev newrev refname; do
     count=$[$count+1]
+    last_refname=$refname
     if [[ "$newrev" == "$GITZERO" ]]; then
       echo "Skipping delete operation"
     fi
   done
 
   if [[ $count -eq 1 ]]; then
+    # Set HEAD to the branch that was actually pushed
+    git symbolic-ref HEAD $last_refname
     # Don't pass archive to this code, it can clone if it needs it
     "$home_dir/post-receive" "$repo" "$newrev" "$user" "$fingerprint"
   else
