@@ -118,10 +118,11 @@ trigger_post_receive() {
   declare repo="$1" user="$2" fingerprint="$3" home_dir="$4"
   local count=0 last_refname
   while read oldrev newrev refname; do
-    count=$[$count+1]
-    last_refname=$refname
     if [[ "$newrev" == "$GITZERO" ]]; then
       echo "Skipping delete operation"
+    else
+      count=$[$count+1]
+      last_refname=$refname
     fi
   done
 
