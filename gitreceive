@@ -116,7 +116,7 @@ trigger_receiver() {
   done
 
   if [[ $count -eq 1 ]]; then
-    git archive "$newrev" | "$home_dir/receiver" "$repo" "$newrev" "$user" "$fingerprint"
+    git archive "$last_refname" | "$home_dir/receiver" "$repo" "$newrev" "$user" "$fingerprint"
   else
     echo "----> Not checking, multiple revisions pushed"
   fi
