@@ -110,7 +110,7 @@ trigger_receiver() {
       echo "Skipping delete operation"
     else
       count=$[$count+1]
-      last_refname=$refname
+      last_refname=$newrev
     fi
 
   done
